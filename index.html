@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KC Momentum Picks (KCMP) - Stock Screening System</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1 class="logo">KC Momentum Picks</h1>
+                <div class="header-info">
+                    <span class="market-regime" id="marketRegime">Loading Market Regime…</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main -->
+    <main class="main">
+        <div class="container">
+            <!-- Dashboard -->
+            <section class="screening-dashboard">
+                <!-- Intro -->
+                <div class="dashboard-header">
+                    <h1>Indian Equity Screening System</h1>
+                    <p>Two-stage filtering: Fundamental strength + Momentum triggers</p>
+                </div>
+
+                <!-- Progress -->
+                <div class="progress-container">
+                    <div class="progress-step" id="step1">
+                        <div class="step-number">1</div>
+                        <div class="step-info">
+                            <h3>Fundamental Filtering</h3>
+                            <p class="step-status" id="step1Status">Ready</p>
+                        </div>
+                    </div>
+                    <div class="progress-arrow">→</div>
+                    <div class="progress-step" id="step2">
+                        <div class="step-number">2</div>
+                        <div class="step-info">
+                            <h3>Momentum Filtering</h3>
+                            <p class="step-status" id="step2Status">Waiting</p>
+                        </div>
+                    </div>
+                    <div class="progress-arrow">→</div>
+                    <div class="progress-step" id="step3">
+                        <div class="step-number">✓</div>
+                        <div class="step-info">
+                            <h3>Final Results</h3>
+                            <p class="step-status" id="step3Status">Waiting</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Control Panel -->
+                <div class="control-panel">
+                    <!-- Stage-1 filters -->
+                    <div class="panel-section">
+                        <h3>Stage 1: Fundamental Criteria</h3>
+                        <div class="criteria-grid">
+                            <div class="criteria-item">
+                                <label for="marketCap">Market Cap (₹ Cr) ≥</label>
+                                <input type="number" id="marketCap" min="100" />
+                            </div>
+                            <div class="criteria-item">
+                                <label for="roce">ROCE (%) ≥</label>
+                                <input type="number" id="roce" min="0" />
+                            </div>
+                            <div class="criteria-item">
+                                <label for="salesGrowth">Sales Growth YoY (%) ≥</label>
+                                <input type="number" id="salesGrowth" min="0" />
+                            </div>
+                            <div class="criteria-item">
+                                <label for="profitGrowth">Profit Growth YoY (%) ≥</label>
+                                <input type="number" id="profitGrowth" min="0" />
+                            </div>
+                            <div class="criteria-item">
+                                <label for="peMax">P/E ≤</label>
+                                <input type="number" id="peMax" min="1" />
+                            </div>
+                            <div class="criteria-item">
+                                <label for="deMax">D/E ≤</label>
+                                <input type="number" id="deMax" step="0.1" min="0" />
+                            </div>
+                            <div class="criteria-item">
+                                <label for="promoterMin">Promoter Holding (%) ≥</label>
+                                <input type="number" id="promoterMin" min="0" max="100" />
+                            </div>
+                            <div class="criteria-item">
+                                <label for="priceMin">Price (₹) ≥</label>
+                                <input type="number" id="priceMin" min="1" />
+                            </div>
+                        </div>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="bfsiHandling" checked />
+                                <span class="checkmark"></span>
+                                Enable BFSI special handling (skip ROCE, D/E & Growth)
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Stage-2 criteria display (read-only) -->
+                    <div class="panel-section">
+                        <h3>Stage 2: Momentum Criteria</h3>
+                        <div class="regime-display">
+                            <div class="regime-card" id="currentRegimeCard">
+                                <h4 id="regimeTitle">Loading…</h4>
+                                <div class="regime-criteria">
+                                    <div class="criteria-row"><span>Volume Spike:</span><span id="volumeThreshold">—</span></div>
+                                    <div class="criteria-row"><span>Price Change (7 d):</span><span id="priceThreshold">—</span></div>
+                                    <div class="criteria-row"><span>OBV Trend:</span><span>Upward</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="action-panel">
+                        <button class="btn btn--primary btn--lg" id="runScreening">🚀 Run KCMP Screening</button>
+                        <button class="btn btn--secondary" id="resetFilters">Reset to Defaults</button>
+                    </div>
+                </div>
+
+                <!-- Results (initially hidden) -->
+                <div class="results-section" id="resultsSection" style="display:none;">
+                    <div class="results-header">
+                        <h2>Screening Results</h2>
+                        <div class="results-summary" id="resultsSummary"></div>
+                    </div>
+
+                    <!-- Stage-1 table -->
+                    <div class="stage-results" id="stage1Results" style="display:none;">
+                        <h3>Stage 1: Fundamental Filtering Results</h3>
+                        <div class="results-table-container">
+                            <table class="results-table">
+                                <thead>
+                                    <tr>
+                                        <th>Stock</th><th>Sector</th><th>Market Cap</th><th>ROCE</th><th>P/E</th><th>Promoter %</th><th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stage1TableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Stage-2 table -->
+                    <div class="stage-results" id="stage2Results" style="display:none;">
+                        <h3>Stage 2: Momentum Filtering Results</h3>
+                        <div class="results-table-container">
+                            <table class="results-table">
+                                <thead>
+                                    <tr>
+                                        <th>Stock</th><th>Price</th><th>7 d Change</th><th>Vol Spike</th><th>OBV Trend</th><th>Final</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stage2TableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Final picks -->
+                    <div class="final-picks" id="finalPicks" style="display:none;">
+                        <h3>🎯 Final KCMP Picks</h3>
+                        <div class="picks-container" id="picksContainer"></div>
+                        <div class="export-actions">
+                            <button class="btn btn--primary" id="exportCSV">📊 Export to CSV</button>
+                            <button class="btn btn--outline" id="analyzePortfolio">📈 Analyze Portfolio</button>
+                        </div>
+                    </div>
+
+                    <!-- Chart -->
+                    <div class="chart-section" id="chartSection" style="display:none;">
+                        <h3>Screening Performance Overview</h3>
+                        <div class="chart-container" style="position:relative; height:400px;">
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Universe stats -->
+                <div class="info-panel">
+                    <h3>Stock Universe</h3>
+                    <div class="info-stats">
+                        <div class="stat-item"><span class="stat-number" id="totalStocks">0</span><span class="stat-label">Total Stocks</span></div>
+                        <div class="stat-item"><span class="stat-number" id="fundamentalPass">0</span><span class="stat-label">Stage 1 Pass</span></div>
+                        <div class="stat-item"><span class="stat-number" id="momentumPass">0</span><span class="stat-label">Stage 2 Pass</span></div>
+                        <div class="stat-item"><span class="stat-number" id="finalPicksStat">0</span><span class="stat-label">Final Picks</span></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container"><p>© 2025 KC Momentum Picks. Educational use only. No investment advice.</p></div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
